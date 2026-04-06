@@ -4,6 +4,7 @@ import { RegisterPage } from "./pages/RegisterPage";
 import { OAuthCallbackPage } from "./pages/OAuthCallbackPage";
 import { SearchPage } from "./pages/SearchPage";
 import { CollectionPage } from "./pages/CollectionPage";
+import { SeriesPage } from "./pages/SeriesPage";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 
 function App() {
@@ -25,6 +26,14 @@ function App() {
         element={
           <ProtectedRoute>
             <CollectionPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/series/:igdbId"
+        element={
+          <ProtectedRoute>
+            <SeriesPage />
           </ProtectedRoute>
         }
       />

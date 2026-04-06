@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { importGame } from "../api/games";
 import { addToCollection } from "../api/collection";
 import { PlatformPicker } from "./PlatformPicker";
@@ -59,6 +60,21 @@ export function GameCard({ game }: GameCardProps) {
         {gamePlatforms}
       </p>
       <p className="text-gray-500">Rating: {rating}</p>
+      {game.series.length > 0 && (
+        <p className="text-gray-500 truncate text-xs">
+          {game.series.map((s, i) => (
+            <span key={s.igdb_id}>
+              {i > 0 && ", "}
+              <Link
+                to={`/series/${s.igdb_id}`}
+                className="underline hover:text-gray-700"
+              >
+                {s.name}
+              </Link>
+            </span>
+          ))}
+        </p>
+      )}
       {addSuccess ? (
         <p className="text-green-600 text-xs font-medium">Added!</p>
       ) : (

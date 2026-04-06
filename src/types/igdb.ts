@@ -13,6 +13,12 @@ export interface IGDBPlatform {
   db_id: number;
 }
 
+export interface IGDBSeriesResult {
+  igdb_id: number;
+  name: string;
+  slug: string | null;
+}
+
 export interface IGDBGameResult {
   igdb_id: number;
   name: string;
@@ -27,4 +33,5 @@ export interface IGDBGameResult {
   total_rating_count: number | null;
   category: number | null;
   status: number | null;
+  series: IGDBSeriesResult[];
 }
