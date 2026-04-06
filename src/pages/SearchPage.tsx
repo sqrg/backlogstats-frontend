@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { searchGames } from "../api/games";
 import { SearchBar } from "../components/SearchBar";
 import { GameCard } from "../components/GameCard";
@@ -35,6 +36,12 @@ export function SearchPage() {
         <h1 className="text-2xl font-bold">Backlogstats</h1>
         <div className="flex items-center gap-3 text-sm text-gray-600">
           <span>{user?.email}</span>
+          <Link
+            to="/collection"
+            className="border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50"
+          >
+            My Collection
+          </Link>
           <button
             onClick={logout}
             className="border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50"

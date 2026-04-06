@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { importGame } from "../api/games";
+import { addToCollection } from "../api/collection";
+import { PlatformPicker } from "./PlatformPicker";
 import type { IGDBGameResult } from "../types/igdb";
-
-type ImportState = "idle" | "loading" | "done" | "error";
 
 interface GameCardProps {
   game: IGDBGameResult;
 }
 
 export function GameCard({ game }: GameCardProps) {
-  const [importState, setImportState] = useState<ImportState>("idle");
-  const [importError, setImportError] = useState<string | null>(null);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [addSuccess, setAddSuccess] = useState(false);
 
   const year = game.first_release_date
     ? new Date(game.first_release_date * 1000).getFullYear()
@@ -19,17 +20,20 @@ export function GameCard({ game }: GameCardProps) {
   const rating = game.total_rating != null ? game.total_rating.toFixed(1) : "—";
 
   const genres = game.genres.length > 0 ? game.genres.join(", ") : "—";
-  const platforms = game.platforms.length > 0 ? game.platforms.join(", ") : "—";
+  const gamePlatforms =
+    game.platforms.length > 0
+      ? game.platforms.map((p) => p.name).join(", ")
+      : "—";
 
-  async function handleImport() {
-    setImportState("loading");
-    setImportError(null);
+  async function handleAdd(platformId: number) {
+    setIsAdding(true);
     try {
-      await importGame(game.igdb_id);
-      setImportState("done");
-    } catch (err) {
-      setImportError(err instanceof Error ? err.message : "Import failed");
-      setImportState("error");
+      const imported = await importGame(game.igdb_id);
+      await addToCollection(imported.id, platformId);
+      setIsPickerOpen(false);
+      setAddSuccess(true);
+    } finally {
+      setIsAdding(false);
     }
   }
 
@@ -51,23 +55,30 @@ export function GameCard({ game }: GameCardProps) {
       <p className="text-gray-500 truncate" title={genres}>
         {genres}
       </p>
-      <p className="text-gray-500 truncate" title={platforms}>
-        {platforms}
+      <p className="text-gray-500 truncate" title={gamePlatforms}>
+        {gamePlatforms}
       </p>
       <p className="text-gray-500">Rating: {rating}</p>
-      {importState === "done" ? (
-        <p className="text-green-600 text-xs font-medium">Added</p>
+      {addSuccess ? (
+        <p className="text-green-600 text-xs font-medium">Added!</p>
       ) : (
         <>
           <button
-            onClick={handleImport}
-            disabled={importState === "loading"}
+            onClick={() => setIsPickerOpen((o) => !o)}
+            disabled={isAdding}
             className="mt-auto w-full py-1 px-2 rounded border border-gray-300 text-xs hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {importState === "loading" ? "Adding…" : "Add to collection"}
+            Add to collection
           </button>
-          {importState === "error" && (
-            <p className="text-red-500 text-xs">{importError}</p>
+          {isPickerOpen && (
+            <PlatformPicker
+              platforms={game.platforms.map((p) => ({
+                id: p.db_id,
+                name: p.name,
+              }))}
+              onAdd={handleAdd}
+              isLoading={isAdding}
+            />
           )}
         </>
       )}

@@ -7,6 +7,12 @@ export interface IGDBCover {
   url_1080p: string;
 }
 
+export interface IGDBPlatform {
+  igdb_id: number;
+  name: string;
+  db_id: number;
+}
+
 export interface IGDBGameResult {
   igdb_id: number;
   name: string;
@@ -15,7 +21,7 @@ export interface IGDBGameResult {
   cover: IGDBCover | null;
   genres: string[];
   themes: string[];
-  platforms: string[];
+  platforms: IGDBPlatform[];
   first_release_date: number | null;
   total_rating: number | null;
   total_rating_count: number | null;

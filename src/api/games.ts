@@ -14,7 +14,7 @@ export async function searchGames(
   return res.json();
 }
 
-export async function importGame(igdbId: number): Promise<void> {
+export async function importGame(igdbId: number): Promise<{ id: number }> {
   const url = `${BASE_URL}/api/v1/games/from-igdb`;
   const res = await apiFetch(url, {
     method: "POST",
@@ -25,4 +25,5 @@ export async function importGame(igdbId: number): Promise<void> {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail ?? `Request failed: ${res.status}`);
   }
+  return res.json();
 }
