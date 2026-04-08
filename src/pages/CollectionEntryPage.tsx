@@ -67,6 +67,16 @@ function PlaythroughForm({ initial, onSave, onCancel }: PlaythroughFormProps) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  function handleStatusChange(newStatus: PlaythroughStatus) {
+    setForm((prev) => {
+      const updates: Partial<FormState> = { status: newStatus };
+      if (newStatus === "COMPLETED" && !prev.completed_at) {
+        updates.completed_at = new Date().toISOString().split("T")[0];
+      }
+      return { ...prev, ...updates };
+    });
+  }
+
   async function handleSave() {
     setSaving(true);
     try {
@@ -82,7 +92,7 @@ function PlaythroughForm({ initial, onSave, onCancel }: PlaythroughFormProps) {
         <label className="font-medium">Status</label>
         <select
           value={form.status}
-          onChange={(e) => set("status", e.target.value as PlaythroughStatus)}
+          onChange={(e) => handleStatusChange(e.target.value as PlaythroughStatus)}
           className="border border-gray-300 rounded px-2 py-1"
         >
           {ALL_STATUSES.map((s) => (
