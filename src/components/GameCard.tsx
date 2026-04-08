@@ -53,6 +53,9 @@ export function GameCard({ game }: GameCardProps) {
       )}
       <p className="font-semibold leading-tight">{game.name}</p>
       <p className="text-gray-500">{year}</p>
+      {game.game_type && (
+        <p className="text-gray-500 text-xs">{game.game_type}</p>
+      )}
       <p className="text-gray-500 truncate" title={genres}>
         {genres}
       </p>

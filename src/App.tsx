@@ -6,6 +6,7 @@ import { SearchPage } from "./pages/SearchPage";
 import { CollectionPage } from "./pages/CollectionPage";
 import { CollectionEntryPage } from "./pages/CollectionEntryPage";
 import { SeriesPage } from "./pages/SeriesPage";
+import { AdminPage } from "./pages/AdminPage";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 
 function App() {
@@ -43,6 +44,14 @@ function App() {
         element={
           <ProtectedRoute>
             <SeriesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminPage />
           </ProtectedRoute>
         }
       />

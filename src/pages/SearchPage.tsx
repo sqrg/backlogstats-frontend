@@ -42,6 +42,12 @@ export function SearchPage() {
           >
             My Collection
           </Link>
+          <Link
+            to="/admin"
+            className="border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50"
+          >
+            Admin
+          </Link>
           <button
             onClick={logout}
             className="border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50"

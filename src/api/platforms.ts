@@ -11,3 +11,9 @@ export async function listPlatforms(): Promise<Platform[]> {
   if (!res.ok) throw new Error("Failed to fetch platforms");
   return res.json();
 }
+
+export async function syncPlatforms(): Promise<Platform[]> {
+  const res = await apiFetch("/api/v1/admin/platforms/sync", { method: "POST" });
+  if (!res.ok) throw new Error("Failed to sync platforms");
+  return res.json();
+}

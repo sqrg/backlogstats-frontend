@@ -32,6 +32,7 @@ export interface IGDBGameResult {
   total_rating: number | null;
   total_rating_count: number | null;
   category: number | null;
+  game_type: string | null;
   status: number | null;
   series: IGDBSeriesResult[];
 }
