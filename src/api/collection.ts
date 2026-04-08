@@ -1,6 +1,17 @@
 import { apiFetch } from "./client";
 import { BASE_URL } from "./client";
-import type { CollectionEntry } from "../types/collection";
+import type {
+  CollectionEntry,
+  CollectionEntryDetail,
+} from "../types/collection";
+
+export async function getCollectionEntry(
+  id: number,
+): Promise<CollectionEntryDetail> {
+  const res = await apiFetch(`${BASE_URL}/api/v1/collection/${id}`);
+  if (!res.ok) throw new Error("Failed to fetch collection entry");
+  return res.json();
+}
 
 export async function listCollection(): Promise<CollectionEntry[]> {
   const res = await apiFetch(`${BASE_URL}/api/v1/collection/`);

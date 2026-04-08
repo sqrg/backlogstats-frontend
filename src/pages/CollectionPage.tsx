@@ -52,18 +52,22 @@ export function CollectionPage() {
               key={entry.id}
               className="border border-gray-200 rounded p-3 flex flex-col gap-2 text-sm"
             >
-              {entry.game.cover_image_id ? (
-                <img
-                  src={coverUrl(entry.game.cover_image_id)}
-                  alt={entry.game.name}
-                  className="w-full object-cover rounded"
-                />
-              ) : (
-                <div className="w-full aspect-[227/320] bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs">
-                  No cover
-                </div>
-              )}
-              <p className="font-semibold leading-tight">{entry.game.name}</p>
+              <Link to={`/collection/${entry.id}`} className="block">
+                {entry.game.cover_image_id ? (
+                  <img
+                    src={coverUrl(entry.game.cover_image_id)}
+                    alt={entry.game.name}
+                    className="w-full object-cover rounded"
+                  />
+                ) : (
+                  <div className="w-full aspect-[227/320] bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs">
+                    No cover
+                  </div>
+                )}
+                <p className="font-semibold leading-tight mt-2">
+                  {entry.game.name}
+                </p>
+              </Link>
               <p className="text-gray-500">{entry.platform.name}</p>
               <button
                 onClick={() => handleRemove(entry.id)}

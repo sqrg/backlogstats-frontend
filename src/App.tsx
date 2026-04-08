@@ -4,6 +4,7 @@ import { RegisterPage } from "./pages/RegisterPage";
 import { OAuthCallbackPage } from "./pages/OAuthCallbackPage";
 import { SearchPage } from "./pages/SearchPage";
 import { CollectionPage } from "./pages/CollectionPage";
+import { CollectionEntryPage } from "./pages/CollectionEntryPage";
 import { SeriesPage } from "./pages/SeriesPage";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 
@@ -26,6 +27,14 @@ function App() {
         element={
           <ProtectedRoute>
             <CollectionPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/collection/:id"
+        element={
+          <ProtectedRoute>
+            <CollectionEntryPage />
           </ProtectedRoute>
         }
       />
