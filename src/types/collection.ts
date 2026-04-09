@@ -11,10 +11,17 @@ export interface PlatformSummary {
   name: string;
 }
 
+export interface BaseGameSummary {
+  id: number;
+  game: GameSummary;
+  platform: PlatformSummary;
+}
+
 export interface CollectionEntry {
   id: number;
   game: GameSummary;
   platform: PlatformSummary;
+  base_game: BaseGameSummary | null;
   created_at: string;
   updated_at: string;
 }

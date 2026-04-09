@@ -69,6 +69,11 @@ export function CollectionPage() {
                 </p>
               </Link>
               <p className="text-gray-500">{entry.platform.name}</p>
+              {entry.base_game && (
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Base: {entry.base_game.game.name}
+                </p>
+              )}
               <button
                 onClick={() => handleRemove(entry.id)}
                 className="mt-auto w-full py-1 px-2 rounded border border-gray-300 text-xs hover:bg-gray-50"

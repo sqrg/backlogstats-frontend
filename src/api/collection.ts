@@ -39,6 +39,38 @@ export async function addToCollection(
   return res.json();
 }
 
+export async function setBaseGame(
+  entryId: number,
+  baseGameEntryId: number | null,
+): Promise<CollectionEntry> {
+  const res = await apiFetch(
+    `${BASE_URL}/api/v1/collection/${entryId}/base-game`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ base_game_entry_id: baseGameEntryId }),
+    },
+  );
+  if (!res.ok) throw new Error("Failed to update base game");
+  return res.json();
+}
+
+export async function importDlc(
+  baseEntryId: number,
+  igdbIds: number[],
+): Promise<CollectionEntry[]> {
+  const res = await apiFetch(
+    `${BASE_URL}/api/v1/collection/${baseEntryId}/import-dlc`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ igdb_ids: igdbIds }),
+    },
+  );
+  if (!res.ok) throw new Error("Failed to import DLC");
+  return res.json();
+}
+
 export async function removeFromCollection(id: number): Promise<void> {
   const res = await apiFetch(`${BASE_URL}/api/v1/collection/${id}`, {
     method: "DELETE",

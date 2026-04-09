@@ -35,4 +35,5 @@ export interface IGDBGameResult {
   game_type: string | null;
   status: number | null;
   series: IGDBSeriesResult[];
+  dlcs: number[];
 }

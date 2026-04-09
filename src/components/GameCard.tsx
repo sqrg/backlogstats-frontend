@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { importGame } from "../api/games";
-import { addToCollection } from "../api/collection";
+import { addToCollection, importDlc } from "../api/collection";
 import { PlatformPicker } from "./PlatformPicker";
 import type { IGDBGameResult } from "../types/igdb";
 
@@ -13,6 +13,8 @@ export function GameCard({ game }: GameCardProps) {
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [addSuccess, setAddSuccess] = useState(false);
+  const [addDlc, setAddDlc] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const year = game.first_release_date
     ? new Date(game.first_release_date * 1000).getFullYear()
@@ -30,11 +32,22 @@ export function GameCard({ game }: GameCardProps) {
     setIsAdding(true);
     try {
       const imported = await importGame(game.igdb_id);
-      await addToCollection(imported.id, platformId);
+      const entry = await addToCollection(imported.id, platformId);
       setIsPickerOpen(false);
+      let dlcCount = 0;
+      if (addDlc && game.dlcs.length > 0) {
+        const dlcEntries = await importDlc(entry.id, game.dlcs);
+        dlcCount = dlcEntries.length;
+      }
+      setSuccessMessage(
+        dlcCount > 0
+          ? `Game added · ${dlcCount} DLC also added`
+          : "Game added to collection",
+      );
       setAddSuccess(true);
     } finally {
       setIsAdding(false);
+      setAddDlc(false);
     }
   }
 
@@ -79,7 +92,7 @@ export function GameCard({ game }: GameCardProps) {
         </p>
       )}
       {addSuccess ? (
-        <p className="text-green-600 text-xs font-medium">Added!</p>
+        <p className="text-green-600 text-xs font-medium">{successMessage}</p>
       ) : (
         <>
           <button
@@ -89,6 +102,16 @@ export function GameCard({ game }: GameCardProps) {
           >
             Add to collection
           </button>
+          {game.dlcs.length > 0 && (
+            <label className="flex items-center gap-2 text-xs mt-1 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={addDlc}
+                onChange={(e) => setAddDlc(e.target.checked)}
+              />
+              Also add {game.dlcs.length} DLC to collection
+            </label>
+          )}
           {isPickerOpen && (
             <PlatformPicker
               platforms={game.platforms.map((p) => ({

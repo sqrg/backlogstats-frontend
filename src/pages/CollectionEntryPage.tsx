@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getCollectionEntry } from "../api/collection";
+import { getCollectionEntry, setBaseGame } from "../api/collection";
 import {
   createPlaythrough,
   updatePlaythrough,
   deletePlaythrough,
 } from "../api/playthroughs";
-import type { CollectionEntryDetail } from "../types/collection";
+import { BaseGamePicker } from "../components/BaseGamePicker";
+import type { CollectionEntry, CollectionEntryDetail } from "../types/collection";
 import type { Playthrough, PlaythroughStatus } from "../types/playthrough";
 import { STATUS_LABELS, ALL_STATUSES } from "../types/playthrough";
 
@@ -170,6 +171,8 @@ export function CollectionEntryPage() {
   const [error, setError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [baseGameLoading, setBaseGameLoading] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -201,6 +204,33 @@ export function CollectionEntryPage() {
         : prev,
     );
     setEditingId(null);
+  }
+
+  async function handleSetBaseGame(picked: CollectionEntry) {
+    if (!entry) return;
+    setBaseGameLoading(true);
+    setIsPickerOpen(false);
+    try {
+      const updated = await setBaseGame(entry.id, picked.id);
+      setEntry((prev) => (prev ? { ...prev, base_game: updated.base_game } : prev));
+    } catch {
+      // ignore
+    } finally {
+      setBaseGameLoading(false);
+    }
+  }
+
+  async function handleClearBaseGame() {
+    if (!entry) return;
+    setBaseGameLoading(true);
+    try {
+      const updated = await setBaseGame(entry.id, null);
+      setEntry((prev) => (prev ? { ...prev, base_game: updated.base_game } : prev));
+    } catch {
+      // ignore
+    } finally {
+      setBaseGameLoading(false);
+    }
   }
 
   async function handleDelete(playthroughId: number) {
@@ -252,6 +282,53 @@ export function CollectionEntryPage() {
               </p>
             </div>
           </div>
+
+          <section className="mt-6">
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+              Base Game
+            </h2>
+            {entry.base_game ? (
+              <div className="flex items-center gap-3">
+                {entry.base_game.game.cover_image_id ? (
+                  <img
+                    src={coverUrl(entry.base_game.game.cover_image_id)}
+                    className="w-8 h-10 object-cover rounded"
+                  />
+                ) : (
+                  <div className="w-8 h-10 bg-gray-100 rounded" />
+                )}
+                <div>
+                  <p className="text-sm font-medium">{entry.base_game.game.name}</p>
+                  <p className="text-xs text-gray-500">{entry.base_game.platform.name}</p>
+                </div>
+                <button
+                  onClick={handleClearBaseGame}
+                  disabled={baseGameLoading}
+                  className="ml-auto text-xs text-red-500 hover:underline disabled:opacity-50"
+                >
+                  Clear
+                </button>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400">Not set</p>
+            )}
+            {!entry.base_game && !isPickerOpen && (
+              <button
+                onClick={() => setIsPickerOpen(true)}
+                disabled={baseGameLoading}
+                className="mt-2 text-sm text-blue-600 hover:underline disabled:opacity-50"
+              >
+                Set base game
+              </button>
+            )}
+            {isPickerOpen && (
+              <BaseGamePicker
+                excludeEntryId={entry.id}
+                onSelect={handleSetBaseGame}
+                onCancel={() => setIsPickerOpen(false)}
+              />
+            )}
+          </section>
 
           <div>
             <div className="flex items-center justify-between mb-4">
