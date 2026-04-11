@@ -14,7 +14,7 @@ export async function getCollectionEntry(
 }
 
 export async function listCollection(): Promise<CollectionEntry[]> {
-  const res = await apiFetch(`${BASE_URL}/api/v1/collection/`);
+  const res = await apiFetch(`${BASE_URL}/api/v1/collection/?limit=500`);
   if (!res.ok) throw new Error("Failed to fetch collection");
   return res.json();
 }

@@ -1,4 +1,4 @@
-import type { Playthrough } from "./playthrough";
+import type { Playthrough, PlaythroughStatus } from "./playthrough";
 
 export interface GameSummary {
   id: number;
@@ -22,6 +22,7 @@ export interface CollectionEntry {
   game: GameSummary;
   platform: PlatformSummary;
   base_game: BaseGameSummary | null;
+  current_status: PlaythroughStatus | null;
   created_at: string;
   updated_at: string;
 }
