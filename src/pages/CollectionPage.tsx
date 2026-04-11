@@ -128,12 +128,20 @@ export function CollectionPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">My Collection</h1>
-        <Link
-          to="/"
-          className="border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50"
-        >
-          Search games
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            to="/lists"
+            className="border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50"
+          >
+            My Lists
+          </Link>
+          <Link
+            to="/"
+            className="border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50"
+          >
+            Search games
+          </Link>
+        </div>
       </div>
 
       {/* Controls */}

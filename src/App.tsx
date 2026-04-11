@@ -7,6 +7,8 @@ import { CollectionPage } from "./pages/CollectionPage";
 import { CollectionEntryPage } from "./pages/CollectionEntryPage";
 import { SeriesPage } from "./pages/SeriesPage";
 import { AdminPage } from "./pages/AdminPage";
+import { ListsPage } from "./pages/ListsPage";
+import { ListDetailPage } from "./pages/ListDetailPage";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 
 function App() {
@@ -52,6 +54,22 @@ function App() {
         element={
           <ProtectedRoute>
             <AdminPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/lists"
+        element={
+          <ProtectedRoute>
+            <ListsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/lists/:id"
+        element={
+          <ProtectedRoute>
+            <ListDetailPage />
           </ProtectedRoute>
         }
       />
