@@ -29,4 +29,5 @@ export interface CollectionEntry {
 
 export interface CollectionEntryDetail extends CollectionEntry {
   playthroughs: Playthrough[];
+  children: BaseGameSummary[];
 }

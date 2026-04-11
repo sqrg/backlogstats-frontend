@@ -330,6 +330,37 @@ export function CollectionEntryPage() {
             )}
           </section>
 
+          {entry.children.length > 0 && (
+            <section className="mt-6">
+              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                DLC &amp; Expansions
+              </h2>
+              <div className="flex flex-col gap-2">
+                {entry.children.map((child) => (
+                  <Link
+                    key={child.id}
+                    to={`/collection/${child.id}`}
+                    className="flex items-center gap-3 p-2 rounded border border-gray-200 hover:bg-gray-50"
+                  >
+                    {child.game.cover_image_id ? (
+                      <img
+                        src={coverUrl(child.game.cover_image_id)}
+                        alt={child.game.name}
+                        className="w-8 h-10 object-cover rounded shrink-0"
+                      />
+                    ) : (
+                      <div className="w-8 h-10 bg-gray-100 rounded shrink-0" />
+                    )}
+                    <div>
+                      <p className="text-sm font-medium leading-tight">{child.game.name}</p>
+                      <p className="text-xs text-gray-500">{child.platform.name}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Playthroughs</h2>
