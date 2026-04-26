@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { getGameTypes, syncGameTypes } from "../api/game_types";
 import { syncGenres, type Genre } from "../api/genres";
 import { listPlatforms, syncPlatforms, type Platform } from "../api/platforms";
+import { PageShell } from "../components/ui";
 import type { GameType } from "../types/game_type";
 
 interface SectionState<T> {
@@ -62,16 +62,8 @@ export function AdminPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold">Admin</h1>
-        <Link
-          to="/"
-          className="border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50"
-        >
-          Search games
-        </Link>
-      </div>
+    <PageShell>
+      <h1 className="text-2xl font-bold mb-8 mt-8">Admin</h1>
 
       {/* Game Types */}
       <section className="mb-10">
@@ -168,6 +160,6 @@ export function AdminPage() {
           </table>
         )}
       </section>
-    </div>
+    </PageShell>
   );
 }

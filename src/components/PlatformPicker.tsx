@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Platform } from "../api/platforms";
+import { Button } from "./ui/Button";
 
 interface PlatformPickerProps {
   platforms: Platform[];
@@ -23,16 +24,14 @@ export function PlatformPicker({
     try {
       await onAdd(selectedId);
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Something went wrong");
-      }
+      setError(err instanceof Error ? err.message : "Something went wrong");
     }
   }
 
   if (sorted.length === 0) {
-    return <p className="text-xs text-gray-400">No platforms available.</p>;
+    return (
+      <p className="text-[0.7rem] text-text-muted">No platforms available.</p>
+    );
   }
 
   return (
@@ -42,7 +41,7 @@ export function PlatformPicker({
           value={selectedId}
           onChange={(e) => setSelectedId(Number(e.target.value))}
           disabled={isLoading}
-          className="flex-1 min-w-0 text-xs border border-gray-300 rounded px-1 py-1 disabled:opacity-50"
+          className="flex-1 min-w-0 font-ui text-[0.7rem] bg-surface border border-border-hi rounded px-1.5 py-1 text-text-primary disabled:opacity-50 focus:outline-none focus:border-accent"
         >
           {sorted.map((p) => (
             <option key={p.id} value={p.id}>
@@ -50,15 +49,15 @@ export function PlatformPicker({
             </option>
           ))}
         </select>
-        <button
+        <Button
           onClick={handleAdd}
           disabled={isLoading}
-          className="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="!text-[0.7rem] !px-2 !py-1"
         >
           {isLoading ? "Adding…" : "Add"}
-        </button>
+        </Button>
       </div>
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && <p className="text-[0.7rem] text-[#e06c75]">{error}</p>}
     </div>
   );
 }

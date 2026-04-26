@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { listUserLists, createUserList, deleteUserList } from "../api/user_lists";
+import { PageShell } from "../components/ui";
 import type { UserList } from "../types/user_list";
 
 export function ListsPage() {
@@ -41,17 +42,8 @@ export function ListsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">My Lists</h1>
-        <Link
-          to="/collection"
-          className="border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50"
-        >
-          My Collection
-        </Link>
-      </div>
+    <PageShell>
+      <h1 className="text-2xl font-bold mb-6 mt-8">My Lists</h1>
 
       {/* New list button / inline form */}
       {!isCreating ? (
@@ -151,6 +143,6 @@ export function ListsPage() {
           ))}
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { getSeriesByIgdbId } from "../api/series";
+import { PageShell } from "../components/ui";
 import type { SeriesDetail } from "../types/series";
 
 export function SeriesPage() {
@@ -21,18 +22,10 @@ export function SeriesPage() {
     `https://images.igdb.com/igdb/image/upload/t_cover_big/${coverImageId}.jpg`;
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">
-          {series ? series.name : "Series"}
-        </h1>
-        <Link
-          to="/"
-          className="border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50"
-        >
-          Search games
-        </Link>
-      </div>
+    <PageShell>
+      <h1 className="text-2xl font-bold mb-6 mt-8">
+        {series ? series.name : "Series"}
+      </h1>
 
       {isLoading && <p className="text-gray-500">Loading…</p>}
       {!isLoading && error && <p className="text-red-500">{error}</p>}
@@ -62,6 +55,6 @@ export function SeriesPage() {
           ))}
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }

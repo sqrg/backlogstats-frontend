@@ -7,6 +7,7 @@ import {
   deletePlaythrough,
 } from "../api/playthroughs";
 import { BaseGamePicker } from "../components/BaseGamePicker";
+import { PageShell } from "../components/ui";
 import type { CollectionEntry, CollectionEntryDetail } from "../types/collection";
 import type { Playthrough, PlaythroughStatus } from "../types/playthrough";
 import { STATUS_LABELS, ALL_STATUSES } from "../types/playthrough";
@@ -248,16 +249,8 @@ export function CollectionEntryPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-8">
-      <div className="mb-6">
-        <Link
-          to="/collection"
-          className="border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50"
-        >
-          ← My Collection
-        </Link>
-      </div>
-
+    <PageShell>
+      <div className="max-w-2xl mx-auto pt-8">
       {isLoading && <p className="text-gray-500">Loading…</p>}
       {!isLoading && error && <p className="text-red-500">{error}</p>}
       {!isLoading && !error && entry && (
@@ -442,6 +435,7 @@ export function CollectionEntryPage() {
           </div>
         </>
       )}
-    </div>
+      </div>
+    </PageShell>
   );
 }

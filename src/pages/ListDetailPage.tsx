@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { listCollection } from "../api/collection";
+import { PageShell } from "../components/ui";
 import { searchGames, importGame } from "../api/games";
 import {
   getUserList,
@@ -168,17 +169,8 @@ export function ListDetailPage() {
     );
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      {/* Back link */}
-      <div className="mb-6">
-        <Link
-          to="/lists"
-          className="border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50"
-        >
-          ← My Lists
-        </Link>
-      </div>
-
+    <PageShell>
+      <div className="pt-8">
       {isLoading && <p className="text-gray-500">Loading…</p>}
       {!isLoading && error && <p className="text-red-500 mb-4">{error}</p>}
 
@@ -432,6 +424,7 @@ export function ListDetailPage() {
           )}
         </>
       )}
-    </div>
+      </div>
+    </PageShell>
   );
 }
