@@ -5,6 +5,7 @@ const NAV_LINKS = [
   { to: "/", label: "Search games", end: true },
   { to: "/collection", label: "My Collection" },
   { to: "/lists", label: "My Lists" },
+  { to: "/stats", label: "Stats" },
   { to: "/admin", label: "Admin" },
 ];
 
