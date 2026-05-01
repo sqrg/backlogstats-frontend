@@ -1,4 +1,5 @@
 import type { IGDBGameResult } from "../types/igdb";
+import type { GameDetail } from "../types/game";
 import { apiFetch, BASE_URL } from "./client";
 
 export async function searchGames(
@@ -11,6 +12,12 @@ export async function searchGames(
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail ?? `Request failed: ${res.status}`);
   }
+  return res.json();
+}
+
+export async function getGameById(id: number): Promise<GameDetail> {
+  const res = await apiFetch(`${BASE_URL}/api/v1/games/${id}`);
+  if (!res.ok) throw new Error("Failed to fetch game");
   return res.json();
 }
 

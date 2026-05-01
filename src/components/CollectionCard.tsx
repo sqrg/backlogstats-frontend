@@ -21,7 +21,7 @@ export function CollectionCard({ entry, onRemove }: CollectionCardProps) {
 
   return (
     <Link
-      to={`/collection/${entry.id}`}
+      to={`/games/${entry.id}`}
       className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-surface no-underline shadow-[0_1px_3px_rgba(0,0,0,0.05)] transition-all duration-150 hover:-translate-y-0.5 hover:border-border-hi hover:bg-[#f4faf8] hover:shadow-[0_4px_20px_rgba(2,128,144,0.12)]"
     >
       {onRemove && (

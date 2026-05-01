@@ -5,6 +5,7 @@ import { OAuthCallbackPage } from "./pages/OAuthCallbackPage";
 import { SearchPage } from "./pages/SearchPage";
 import { CollectionPage } from "./pages/CollectionPage";
 import { CollectionEntryPage } from "./pages/CollectionEntryPage";
+import { GameDetailPage } from "./pages/GameDetailPage";
 import { SeriesPage } from "./pages/SeriesPage";
 import { StatsPage } from "./pages/StatsPage";
 import { AdminPage } from "./pages/AdminPage";
@@ -39,6 +40,14 @@ function App() {
         element={
           <ProtectedRoute>
             <CollectionEntryPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/games/:id"
+        element={
+          <ProtectedRoute>
+            <GameDetailPage />
           </ProtectedRoute>
         }
       />
