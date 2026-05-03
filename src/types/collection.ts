@@ -23,6 +23,8 @@ export interface CollectionEntry {
   platform: PlatformSummary;
   base_game: BaseGameSummary | null;
   current_status: PlaythroughStatus | null;
+  completed_years: number[];
+  last_completed_at: string | null; // YYYY-MM-DD
   created_at: string;
   updated_at: string;
 }

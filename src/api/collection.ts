@@ -22,11 +22,16 @@ export async function listCollection(): Promise<CollectionEntry[]> {
 export async function addToCollection(
   gameId: number,
   platformId: number,
+  opts: { skipDefaultPlaythrough?: boolean } = {},
 ): Promise<CollectionEntry> {
   const res = await apiFetch(`${BASE_URL}/api/v1/collection/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ game_id: gameId, platform_id: platformId }),
+    body: JSON.stringify({
+      game_id: gameId,
+      platform_id: platformId,
+      skip_default_playthrough: opts.skipDefaultPlaythrough ?? false,
+    }),
   });
   if (res.status === 409) {
     const err = new Error(

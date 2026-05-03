@@ -18,3 +18,13 @@ export interface UserList {
   created_at: string;
   updated_at: string;
 }
+
+export interface PublicUserList {
+  id: number;
+  username: string;
+  name: string;
+  is_public: boolean;
+  entries: UserListEntry[];
+  created_at: string;
+  updated_at: string;
+}

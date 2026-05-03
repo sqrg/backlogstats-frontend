@@ -129,6 +129,7 @@ function PlaythroughForm({ initial, onSave, onCancel }: PlaythroughFormProps) {
             <input
               type="number"
               min="0"
+              step="0.5"
               value={form.completion_time}
               onChange={(e) => set("completion_time", e.target.value)}
               className="border border-gray-300 rounded px-2 py-1"

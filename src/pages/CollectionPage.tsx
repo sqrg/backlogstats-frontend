@@ -19,7 +19,13 @@ import {
 } from "../components/ui";
 import { CollectionCard } from "../components/CollectionCard";
 
-type SortKey = "date_desc" | "name_asc" | "platform_asc" | "status";
+type SortKey =
+  | "date_desc"
+  | "completed_desc"
+  | "completed_asc"
+  | "name_asc"
+  | "platform_asc"
+  | "status";
 type StatusFilter = PlaythroughStatus | "ALL";
 
 const PAGE_SIZE = 20;
@@ -60,6 +66,7 @@ export function CollectionPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [platformFilter, setPlatformFilter] = useState<number | "ALL">("ALL");
+  const [yearFilter, setYearFilter] = useState<number | "ALL">("ALL");
   const [sort, setSort] = useState<SortKey>("date_desc");
   const [page, setPage] = useState(1);
 
@@ -74,7 +81,7 @@ export function CollectionPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, platformFilter, sort]);
+  }, [search, statusFilter, platformFilter, yearFilter, sort]);
 
   useEffect(() => {
     function handler(e: KeyboardEvent) {
@@ -106,6 +113,14 @@ export function CollectionPage() {
     return [...seen.entries()].sort((a, b) => a[1].localeCompare(b[1]));
   }, [entries]);
 
+  const completionYears = useMemo(() => {
+    const set = new Set<number>();
+    for (const e of entries) {
+      for (const y of e.completed_years) set.add(y);
+    }
+    return [...set].sort((a, b) => b - a);
+  }, [entries]);
+
   const counts = useMemo(() => {
     const c: Record<PlaythroughStatus, number> = {
       NOT_STARTED: 0,
@@ -132,6 +147,9 @@ export function CollectionPage() {
     if (platformFilter !== "ALL") {
       result = result.filter((e) => e.platform.id === platformFilter);
     }
+    if (yearFilter !== "ALL") {
+      result = result.filter((e) => e.completed_years.includes(yearFilter));
+    }
     return [...result].sort((a, b) => {
       if (sort === "name_asc") return a.game.name.localeCompare(b.game.name);
       if (sort === "platform_asc")
@@ -141,11 +159,22 @@ export function CollectionPage() {
         const sb = STATUS_SORT_ORDER[b.current_status ?? "NOT_STARTED"];
         return sa - sb;
       }
+      if (sort === "completed_desc" || sort === "completed_asc") {
+        // Uncompleted entries always fall to the end, regardless of direction.
+        if (a.last_completed_at && b.last_completed_at) {
+          return sort === "completed_desc"
+            ? b.last_completed_at.localeCompare(a.last_completed_at)
+            : a.last_completed_at.localeCompare(b.last_completed_at);
+        }
+        if (a.last_completed_at) return -1;
+        if (b.last_completed_at) return 1;
+        return 0;
+      }
       return (
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
     });
-  }, [entries, search, statusFilter, platformFilter, sort]);
+  }, [entries, search, statusFilter, platformFilter, yearFilter, sort]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -155,7 +184,10 @@ export function CollectionPage() {
   );
 
   const hasFilters =
-    search.trim() !== "" || statusFilter !== "ALL" || platformFilter !== "ALL";
+    search.trim() !== "" ||
+    statusFilter !== "ALL" ||
+    platformFilter !== "ALL" ||
+    yearFilter !== "ALL";
 
   return (
     <PageShell>
@@ -258,12 +290,26 @@ export function CollectionPage() {
             })),
           ]}
         />
+        <Select<string>
+          value={yearFilter === "ALL" ? "ALL" : String(yearFilter)}
+          onChange={(v) => setYearFilter(v === "ALL" ? "ALL" : Number(v))}
+          prefix="Completed:"
+          options={[
+            { value: "ALL", label: "Any year" },
+            ...completionYears.map((y) => ({
+              value: String(y),
+              label: String(y),
+            })),
+          ]}
+        />
         <Select<SortKey>
           value={sort}
           onChange={setSort}
           prefix="Sort:"
           options={[
             { value: "date_desc", label: "Date added" },
+            { value: "completed_desc", label: "Completion date (newest)" },
+            { value: "completed_asc", label: "Completion date (oldest)" },
             { value: "name_asc", label: "Name" },
             { value: "platform_asc", label: "Platform" },
             { value: "status", label: "Status" },

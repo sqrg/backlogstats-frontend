@@ -11,11 +11,17 @@ import { StatsPage } from "./pages/StatsPage";
 import { AdminPage } from "./pages/AdminPage";
 import { ListsPage } from "./pages/ListsPage";
 import { ListDetailPage } from "./pages/ListDetailPage";
+import { ProfilePage } from "./pages/ProfilePage";
+import { PublicListsPage } from "./pages/PublicListsPage";
+import { PublicListDetailPage } from "./pages/PublicListDetailPage";
+import { LegacyImportPage } from "./pages/LegacyImportPage";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 
 function App() {
   return (
     <Routes>
+      <Route path="/u/:username/lists" element={<PublicListsPage />} />
+      <Route path="/u/:username/lists/:id" element={<PublicListDetailPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/auth/callback" element={<OAuthCallbackPage />} />
@@ -88,6 +94,22 @@ function App() {
         element={
           <ProtectedRoute>
             <ListDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/import/legacy"
+        element={
+          <ProtectedRoute>
+            <LegacyImportPage />
           </ProtectedRoute>
         }
       />

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 import { listCollection } from "../api/collection";
 import { PageShell } from "../components/ui";
 import { searchGames, importGame } from "../api/games";
@@ -23,6 +24,7 @@ type PickerTab = "collection" | "igdb";
 
 export function ListDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { profile } = useAuth();
   const [list, setList] = useState<UserList | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -230,6 +232,28 @@ export function ListDetailPage() {
               {list.is_public ? "Public" : "Private"}
             </button>
           </div>
+
+          {/* Share link — only shown when list is public and user has a username */}
+          {list.is_public && profile?.username && (
+            <div className="mb-6 flex items-center gap-2 text-sm">
+              <span className="text-gray-500">Public URL:</span>
+              <a
+                href={`/u/${profile.username}/lists/${list.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-teal-700 hover:underline font-mono text-xs truncate"
+              >
+                /u/{profile.username}/lists/{list.id}
+              </a>
+            </div>
+          )}
+          {list.is_public && !profile?.username && (
+            <p className="mb-6 text-sm text-amber-700">
+              Set a username on your{" "}
+              <a href="/profile" className="underline">profile</a>{" "}
+              to get a shareable public URL for this list.
+            </p>
+          )}
 
           {/* Add game button */}
           {!isPickerOpen && (

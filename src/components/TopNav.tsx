@@ -6,6 +6,7 @@ const NAV_LINKS = [
   { to: "/collection", label: "My Collection" },
   { to: "/lists", label: "My Lists" },
   { to: "/stats", label: "Stats" },
+  { to: "/import/legacy", label: "Import" },
   { to: "/admin", label: "Admin" },
 ];
 
@@ -21,6 +22,7 @@ function getInitials(email: string | undefined): string {
 
 export function TopNav() {
   const { user, logout } = useAuth();
+
 
   return (
     <header className="sticky top-0 z-50 h-[52px] flex items-center px-6 border-b border-border bg-surface/95 backdrop-blur-md shadow-[0_1px_0_#cce3db]">
@@ -38,40 +40,60 @@ export function TopNav() {
         </span>
       </Link>
 
-      <nav className="flex gap-0.5 flex-1">
-        {NAV_LINKS.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            end={link.end}
-            className={({ isActive }) =>
-              [
-                "font-ui font-medium text-[0.82rem] px-3 py-1 rounded no-underline transition-colors",
-                isActive
-                  ? "text-text-primary bg-black/5"
-                  : "text-text-secondary hover:text-text-primary hover:bg-black/5",
-              ].join(" ")
-            }
-          >
-            {link.label}
-          </NavLink>
-        ))}
-      </nav>
+      {user ? (
+        <>
+          <nav className="flex gap-0.5 flex-1">
+            {NAV_LINKS.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.end}
+                className={({ isActive }) =>
+                  [
+                    "font-ui font-medium text-[0.82rem] px-3 py-1 rounded no-underline transition-colors",
+                    isActive
+                      ? "text-text-primary bg-black/5"
+                      : "text-text-secondary hover:text-text-primary hover:bg-black/5",
+                  ].join(" ")
+                }
+              >
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
 
-      <div className="flex items-center gap-3 shrink-0">
-        <button
-          onClick={logout}
-          className="font-ui font-medium text-[0.78rem] text-text-secondary hover:text-text-primary transition-colors"
-        >
-          Sign out
-        </button>
-        <div
-          title={user?.email}
-          className="w-8 h-8 rounded-full bg-gradient-to-br from-teal to-accent flex items-center justify-center font-ui font-bold text-[0.75rem] text-white cursor-default"
-        >
-          {getInitials(user?.email)}
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={logout}
+              className="font-ui font-medium text-[0.78rem] text-text-secondary hover:text-text-primary transition-colors"
+            >
+              Sign out
+            </button>
+            <Link
+              to="/profile"
+              title={user.email}
+              className="w-8 h-8 rounded-full bg-gradient-to-br from-teal to-accent flex items-center justify-center font-ui font-bold text-[0.75rem] text-white no-underline hover:opacity-80 transition-opacity"
+            >
+              {getInitials(user.email)}
+            </Link>
+          </div>
+        </>
+      ) : (
+        <div className="flex flex-1 justify-end items-center gap-3">
+          <Link
+            to="/login"
+            className="font-ui font-medium text-[0.82rem] text-text-secondary hover:text-text-primary no-underline transition-colors"
+          >
+            Sign in
+          </Link>
+          <Link
+            to="/register"
+            className="font-ui font-medium text-[0.82rem] px-3 py-1 rounded bg-accent text-white no-underline hover:opacity-90 transition-opacity"
+          >
+            Sign up
+          </Link>
         </div>
-      </div>
+      )}
     </header>
   );
 }
