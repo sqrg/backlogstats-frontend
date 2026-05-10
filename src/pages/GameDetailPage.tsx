@@ -520,24 +520,6 @@ export function GameDetailPage() {
 
   // Handlers
 
-  async function handleStatusChange(s: PlaythroughStatus) {
-    if (!entry) return;
-    const prev = status;
-    setStatus(s);
-    try {
-      const pt = await createPlaythrough(entry.id, {
-        status: s,
-        started_at: new Date().toISOString().split("T")[0],
-        completed_at: s === "COMPLETED" ? new Date().toISOString().split("T")[0] : null,
-        completion_time: null,
-        notes: null,
-      });
-      setEntry((e) => e ? { ...e, playthroughs: [...e.playthroughs, pt], current_status: s } : e);
-    } catch {
-      setStatus(prev);
-    }
-  }
-
   async function handleCreatePT(form: PlaythroughFormState) {
     if (!entry) return;
     const pt = await createPlaythrough(entry.id, {
@@ -792,42 +774,25 @@ export function GameDetailPage() {
                 </span>
               </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: 4,
-                  flexWrap: "wrap",
-                  justifyContent: "flex-end",
-                  maxWidth: 300,
-                }}
-              >
-                {ALL_STATUSES.map((s) => {
-                  const active = s === status;
-                  const cfg = STATUS_VISUALS[s];
-                  return (
-                    <button
-                      key={s}
-                      onClick={() => handleStatusChange(s)}
-                      style={{
-                        fontFamily: '"Space Grotesk", sans-serif',
-                        fontWeight: active ? 600 : 400,
-                        fontSize: "0.7rem",
-                        color: active ? cfg.color : "#8ab8b0",
-                        background: active
-                          ? cfg.bg
-                          : "rgba(255,255,255,0.55)",
-                        border: `1px solid ${active ? cfg.color + "44" : "#cce3db"}`,
-                        padding: "3px 10px",
-                        borderRadius: 99,
-                        cursor: "pointer",
-                        transition: "all 0.12s",
-                      }}
-                    >
-                      {cfg.label}
-                    </button>
-                  );
-                })}
-              </div>
+              {(() => {
+                const cfg = STATUS_VISUALS[status];
+                return (
+                  <span
+                    style={{
+                      fontFamily: '"Space Grotesk", sans-serif',
+                      fontWeight: 600,
+                      fontSize: "0.7rem",
+                      color: cfg.color,
+                      background: cfg.bg,
+                      border: `1px solid ${cfg.color}44`,
+                      padding: "3px 10px",
+                      borderRadius: 99,
+                    }}
+                  >
+                    {cfg.label}
+                  </span>
+                );
+              })()}
             </div>
           </div>
         </div>
