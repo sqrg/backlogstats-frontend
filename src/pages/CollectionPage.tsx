@@ -20,9 +20,8 @@ import {
 import { CollectionCard } from "../components/CollectionCard";
 
 type SortKey =
-  | "date_desc"
-  | "completed_desc"
   | "completed_asc"
+  | "completed_desc"
   | "name_asc"
   | "platform_asc"
   | "status";
@@ -67,7 +66,7 @@ export function CollectionPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [platformFilter, setPlatformFilter] = useState<number | "ALL">("ALL");
   const [yearFilter, setYearFilter] = useState<number | "ALL">("ALL");
-  const [sort, setSort] = useState<SortKey>("date_desc");
+  const [sort, setSort] = useState<SortKey>("completed_asc");
   const [page, setPage] = useState(1);
 
   const searchRef = useRef<HTMLInputElement>(null);
@@ -159,20 +158,15 @@ export function CollectionPage() {
         const sb = STATUS_SORT_ORDER[b.current_status ?? "NOT_STARTED"];
         return sa - sb;
       }
-      if (sort === "completed_desc" || sort === "completed_asc") {
-        // Uncompleted entries always fall to the end, regardless of direction.
-        if (a.last_completed_at && b.last_completed_at) {
-          return sort === "completed_desc"
-            ? b.last_completed_at.localeCompare(a.last_completed_at)
-            : a.last_completed_at.localeCompare(b.last_completed_at);
-        }
-        if (a.last_completed_at) return -1;
-        if (b.last_completed_at) return 1;
-        return 0;
+      // Uncompleted entries always fall to the end, regardless of direction.
+      if (a.last_completed_at && b.last_completed_at) {
+        return sort === "completed_desc"
+          ? b.last_completed_at.localeCompare(a.last_completed_at)
+          : a.last_completed_at.localeCompare(b.last_completed_at);
       }
-      return (
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
+      if (a.last_completed_at) return -1;
+      if (b.last_completed_at) return 1;
+      return 0;
     });
   }, [entries, search, statusFilter, platformFilter, yearFilter, sort]);
 
@@ -307,9 +301,8 @@ export function CollectionPage() {
           onChange={setSort}
           prefix="Sort:"
           options={[
-            { value: "date_desc", label: "Date added" },
-            { value: "completed_desc", label: "Completion date (newest)" },
             { value: "completed_asc", label: "Completion date (oldest)" },
+            { value: "completed_desc", label: "Completion date (newest)" },
             { value: "name_asc", label: "Name" },
             { value: "platform_asc", label: "Platform" },
             { value: "status", label: "Status" },
