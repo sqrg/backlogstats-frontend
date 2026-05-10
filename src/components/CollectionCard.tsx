@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import type { CollectionEntry } from "../types/collection";
 import { CoverArt } from "./CoverArt";
 import { StatusPill } from "./StatusPill";
@@ -10,7 +10,6 @@ interface CollectionCardProps {
 }
 
 export function CollectionCard({ entry, onRemove }: CollectionCardProps) {
-  const navigate = useNavigate();
   const status = entry.current_status ?? "NOT_STARTED";
   const isDLC = entry.base_game !== null;
 
@@ -20,15 +19,9 @@ export function CollectionCard({ entry, onRemove }: CollectionCardProps) {
     onRemove?.(entry.id);
   }
 
-  function handleDetails(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    navigate(`/collection/${entry.id}`);
-  }
-
   return (
     <Link
-      to={`/games/${entry.id}`}
+      to={`/collection/${entry.id}`}
       className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-surface no-underline shadow-[0_1px_3px_rgba(0,0,0,0.05)] transition-all duration-150 hover:-translate-y-0.5 hover:border-border-hi hover:bg-[#f4faf8] hover:shadow-[0_4px_20px_rgba(2,128,144,0.12)]"
     >
       {onRemove && (
@@ -65,12 +58,6 @@ export function CollectionCard({ entry, onRemove }: CollectionCardProps) {
 
         <div className="flex items-center justify-between gap-2">
           <StatusPill status={status} />
-          <button
-            onClick={handleDetails}
-            className="text-[0.7rem] text-text-muted hover:text-accent hover:underline"
-          >
-            Details
-          </button>
         </div>
       </div>
     </Link>

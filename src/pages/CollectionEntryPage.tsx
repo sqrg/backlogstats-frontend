@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getCollectionEntry, setBaseGame } from "../api/collection";
+import { getGameById } from "../api/games";
+import { listUserLists, createListEntry } from "../api/user_lists";
 import {
   createPlaythrough,
   updatePlaythrough,
@@ -15,9 +17,11 @@ import {
 import { BaseGamePicker } from "../components/BaseGamePicker";
 import { PageShell } from "../components/ui";
 import type { CollectionEntry, CollectionEntryDetail } from "../types/collection";
+import type { GameDetail } from "../types/game";
 import type { Playthrough, PlaythroughStatus } from "../types/playthrough";
 import { STATUS_LABELS, ALL_STATUSES } from "../types/playthrough";
 import type { Session } from "../types/session";
+import type { UserList } from "../types/user_list";
 
 const coverUrl = (coverImageId: string) =>
   `https://images.igdb.com/igdb/image/upload/t_cover_big/${coverImageId}.jpg`;
@@ -306,9 +310,20 @@ function SessionForm({ initial, onSave, onCancel }: SessionFormProps) {
   );
 }
 
+function formatReleaseDate(ts: number | null | undefined): string | null {
+  if (!ts) return null;
+  return new Date(ts * 1000).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 export function CollectionEntryPage() {
   const { id } = useParams<{ id: string }>();
   const [entry, setEntry] = useState<CollectionEntryDetail | null>(null);
+  const [game, setGame] = useState<GameDetail | null>(null);
+  const [lists, setLists] = useState<UserList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -319,18 +334,43 @@ export function CollectionEntryPage() {
   const [sessionsError, setSessionsError] = useState<string | null>(null);
   const [isAddingSession, setIsAddingSession] = useState(false);
   const [editingSessionId, setEditingSessionId] = useState<number | null>(null);
+  const [isAddingToList, setIsAddingToList] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     const numId = Number(id);
     getCollectionEntry(numId)
-      .then(setEntry)
+      .then((e) => {
+        setEntry(e);
+        getGameById(e.game.id)
+          .then(setGame)
+          .catch(() => {
+            // Proceed without game detail
+          });
+      })
       .catch(() => setError("Failed to load entry."))
       .finally(() => setIsLoading(false));
     listSessions({ game_in_collection_id: numId })
       .then(setSessions)
       .catch(() => setSessionsError("Failed to load sessions."));
+    listUserLists()
+      .then(setLists)
+      .catch(() => {
+        // Lists are optional context
+      });
   }, [id]);
+
+  async function handleAddToList(listId: number) {
+    if (!entry) return;
+    try {
+      await createListEntry(listId, entry.game.id);
+      const updated = await listUserLists();
+      setLists(updated);
+    } catch {
+      // already in list or other error
+    }
+    setIsAddingToList(false);
+  }
 
   async function handleCreate(form: FormState) {
     if (!entry) return;
@@ -444,11 +484,34 @@ export function CollectionEntryPage() {
             <div>
               <h1 className="text-2xl font-bold">{entry.game.name}</h1>
               <p className="text-gray-500 mt-1">{entry.platform.name}</p>
+              {game?.first_release_date && (
+                <p className="text-gray-400 text-sm mt-1">
+                  Released: {formatReleaseDate(game.first_release_date)}
+                </p>
+              )}
               <p className="text-gray-400 text-sm mt-1">
                 Added: {new Date(entry.created_at).toLocaleDateString()}
               </p>
+              {game?.genres && game.genres.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {game.genres.map((g) => (
+                    <span
+                      key={g}
+                      className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600"
+                    >
+                      {g}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
+
+          {game?.summary && (
+            <p className="text-sm text-gray-600 leading-relaxed mb-6">
+              {game.summary}
+            </p>
+          )}
 
           <section className="mt-6">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
@@ -695,6 +758,69 @@ export function CollectionEntryPage() {
                 />
               )}
             </div>
+          </section>
+
+          <section className="mt-8">
+            <h2 className="text-lg font-semibold mb-4">In Lists</h2>
+            {(() => {
+              const gameLists = lists.filter((l) =>
+                l.entries.some((e) => e.game_id === entry.game.id),
+              );
+              const availableLists = lists.filter(
+                (l) => !l.entries.some((e) => e.game_id === entry.game.id),
+              );
+              return (
+                <div className="flex flex-col gap-2">
+                  {gameLists.length === 0 && !isAddingToList && (
+                    <p className="text-sm text-gray-500">
+                      Not in any lists yet.
+                    </p>
+                  )}
+                  {gameLists.map((l) => (
+                    <Link
+                      key={l.id}
+                      to={`/lists/${l.id}`}
+                      className="flex items-center justify-between p-3 rounded border border-gray-200 hover:bg-gray-50 text-sm"
+                    >
+                      <span className="font-medium">{l.name}</span>
+                      <span className="text-xs text-gray-400">In list</span>
+                    </Link>
+                  ))}
+                  {isAddingToList ? (
+                    <div className="border border-gray-200 rounded p-3 flex flex-col gap-2 text-sm">
+                      {availableLists.length === 0 ? (
+                        <p className="text-gray-500">
+                          No other lists available.
+                        </p>
+                      ) : (
+                        availableLists.map((l) => (
+                          <button
+                            key={l.id}
+                            onClick={() => handleAddToList(l.id)}
+                            className="text-left hover:text-accent transition-colors"
+                          >
+                            + {l.name}
+                          </button>
+                        ))
+                      )}
+                      <button
+                        onClick={() => setIsAddingToList(false)}
+                        className="text-xs text-gray-400 hover:text-gray-600 text-left mt-1"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setIsAddingToList(true)}
+                      className="self-start border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50 mt-1"
+                    >
+                      Add to list
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
           </section>
         </>
       )}
