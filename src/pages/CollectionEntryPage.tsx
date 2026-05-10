@@ -6,11 +6,18 @@ import {
   updatePlaythrough,
   deletePlaythrough,
 } from "../api/playthroughs";
+import {
+  listSessions,
+  createSession,
+  updateSession,
+  deleteSession,
+} from "../api/sessions";
 import { BaseGamePicker } from "../components/BaseGamePicker";
 import { PageShell } from "../components/ui";
 import type { CollectionEntry, CollectionEntryDetail } from "../types/collection";
 import type { Playthrough, PlaythroughStatus } from "../types/playthrough";
 import { STATUS_LABELS, ALL_STATUSES } from "../types/playthrough";
+import type { Session } from "../types/session";
 
 const coverUrl = (coverImageId: string) =>
   `https://images.igdb.com/igdb/image/upload/t_cover_big/${coverImageId}.jpg`;
@@ -166,6 +173,139 @@ function PlaythroughForm({ initial, onSave, onCancel }: PlaythroughFormProps) {
   );
 }
 
+interface SessionFormState {
+  completion_time: string;
+  started_at: string;
+  ended_at: string;
+  notes: string;
+}
+
+const EMPTY_SESSION_FORM: SessionFormState = {
+  completion_time: "",
+  started_at: "",
+  ended_at: "",
+  notes: "",
+};
+
+function sessionFormToPayload(form: SessionFormState) {
+  return {
+    completion_time: Number(form.completion_time),
+    started_at: form.started_at || null,
+    ended_at: form.ended_at || null,
+    notes: form.notes.trim() || null,
+  };
+}
+
+function sessionToForm(s: Session): SessionFormState {
+  return {
+    completion_time: String(s.completion_time),
+    started_at: s.started_at ?? "",
+    ended_at: s.ended_at ?? "",
+    notes: s.notes ?? "",
+  };
+}
+
+interface SessionFormProps {
+  initial: SessionFormState;
+  onSave: (form: SessionFormState) => Promise<void>;
+  onCancel: () => void;
+}
+
+function SessionForm({ initial, onSave, onCancel }: SessionFormProps) {
+  const [form, setForm] = useState<SessionFormState>(initial);
+  const [saving, setSaving] = useState(false);
+
+  function set<K extends keyof SessionFormState>(
+    field: K,
+    value: SessionFormState[K],
+  ) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  const hours = Number(form.completion_time);
+  const invalidHours =
+    form.completion_time === "" || Number.isNaN(hours) || hours <= 0;
+  const invalidRange =
+    !!form.started_at &&
+    !!form.ended_at &&
+    new Date(form.ended_at) < new Date(form.started_at);
+  const canSave = !invalidHours && !invalidRange && !saving;
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await onSave(form);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="border border-gray-200 rounded p-4 flex flex-col gap-3 text-sm">
+      <div className="flex flex-col gap-1">
+        <label className="font-medium">Hours</label>
+        <input
+          type="number"
+          min="0"
+          step="0.5"
+          value={form.completion_time}
+          onChange={(e) => set("completion_time", e.target.value)}
+          placeholder="e.g. 2.5"
+          className="border border-gray-300 rounded px-2 py-1"
+        />
+      </div>
+      <div className="flex flex-col gap-1">
+        <label className="font-medium">Started (optional)</label>
+        <input
+          type="date"
+          value={form.started_at}
+          onChange={(e) => set("started_at", e.target.value)}
+          className="border border-gray-300 rounded px-2 py-1"
+        />
+      </div>
+      <div className="flex flex-col gap-1">
+        <label className="font-medium">Ended (optional)</label>
+        <input
+          type="date"
+          value={form.ended_at}
+          onChange={(e) => set("ended_at", e.target.value)}
+          className="border border-gray-300 rounded px-2 py-1"
+        />
+        {invalidRange && (
+          <span className="text-xs text-red-500">
+            End must be on or after start.
+          </span>
+        )}
+      </div>
+      <div className="flex flex-col gap-1">
+        <label className="font-medium">Notes</label>
+        <textarea
+          value={form.notes}
+          onChange={(e) => set("notes", e.target.value)}
+          rows={2}
+          className="border border-gray-300 rounded px-2 py-1"
+        />
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={handleSave}
+          disabled={!canSave}
+          className="px-3 py-1 rounded bg-gray-900 text-white text-xs hover:bg-gray-700 disabled:opacity-50"
+        >
+          Save
+        </button>
+        <button
+          onClick={onCancel}
+          disabled={saving}
+          className="px-3 py-1 rounded border border-gray-300 text-xs hover:bg-gray-50 disabled:opacity-50"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function CollectionEntryPage() {
   const { id } = useParams<{ id: string }>();
   const [entry, setEntry] = useState<CollectionEntryDetail | null>(null);
@@ -175,13 +315,21 @@ export function CollectionEntryPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [baseGameLoading, setBaseGameLoading] = useState(false);
+  const [sessions, setSessions] = useState<Session[] | null>(null);
+  const [sessionsError, setSessionsError] = useState<string | null>(null);
+  const [isAddingSession, setIsAddingSession] = useState(false);
+  const [editingSessionId, setEditingSessionId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
-    getCollectionEntry(Number(id))
+    const numId = Number(id);
+    getCollectionEntry(numId)
       .then(setEntry)
       .catch(() => setError("Failed to load entry."))
       .finally(() => setIsLoading(false));
+    listSessions({ game_in_collection_id: numId })
+      .then(setSessions)
+      .catch(() => setSessionsError("Failed to load sessions."));
   }, [id]);
 
   async function handleCreate(form: FormState) {
@@ -246,6 +394,31 @@ export function CollectionEntryPage() {
             ),
           }
         : prev,
+    );
+  }
+
+  async function handleCreateSession(form: SessionFormState) {
+    if (!entry) return;
+    const s = await createSession(entry.id, sessionFormToPayload(form));
+    setSessions((prev) => (prev ? [s, ...prev] : [s]));
+    setIsAddingSession(false);
+  }
+
+  async function handleUpdateSession(
+    sessionId: number,
+    form: SessionFormState,
+  ) {
+    const s = await updateSession(sessionId, sessionFormToPayload(form));
+    setSessions((prev) =>
+      prev ? prev.map((x) => (x.id === sessionId ? s : x)) : prev,
+    );
+    setEditingSessionId(null);
+  }
+
+  async function handleDeleteSession(sessionId: number) {
+    await deleteSession(sessionId);
+    setSessions((prev) =>
+      prev ? prev.filter((x) => x.id !== sessionId) : prev,
     );
   }
 
@@ -434,6 +607,95 @@ export function CollectionEntryPage() {
               )}
             </div>
           </div>
+
+          <section className="mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Sessions</h2>
+              {!isAddingSession && (
+                <button
+                  onClick={() => setIsAddingSession(true)}
+                  className="border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50"
+                >
+                  Log session
+                </button>
+              )}
+            </div>
+
+            {sessionsError && (
+              <p className="text-red-500 text-sm">{sessionsError}</p>
+            )}
+
+            {sessions === null && !sessionsError && (
+              <p className="text-gray-500 text-sm">Loading…</p>
+            )}
+
+            {sessions !== null &&
+              sessions.length === 0 &&
+              !isAddingSession && (
+                <div className="text-sm text-gray-500">
+                  <p>No sessions logged yet.</p>
+                  <p className="text-gray-400 mt-1">
+                    Log time you've spent on this game, even when you haven't
+                    finished it.
+                  </p>
+                </div>
+              )}
+
+            <div className="flex flex-col gap-3">
+              {sessions?.map((s) =>
+                editingSessionId === s.id ? (
+                  <SessionForm
+                    key={s.id}
+                    initial={sessionToForm(s)}
+                    onSave={(form) => handleUpdateSession(s.id, form)}
+                    onCancel={() => setEditingSessionId(null)}
+                  />
+                ) : (
+                  <div
+                    key={s.id}
+                    className="border border-gray-200 rounded p-4 text-sm flex flex-col gap-1"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{s.completion_time}h</span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setEditingSessionId(s.id)}
+                          className="border border-gray-300 rounded px-2 py-0.5 text-xs hover:bg-gray-50"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteSession(s.id)}
+                          className="border border-red-300 text-red-600 rounded px-2 py-0.5 text-xs hover:bg-red-50"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                    {(s.started_at || s.ended_at) && (
+                      <p className="text-gray-500">
+                        {s.started_at ?? "?"}
+                        {s.ended_at && s.ended_at !== s.started_at
+                          ? ` → ${s.ended_at}`
+                          : ""}
+                      </p>
+                    )}
+                    {s.notes && (
+                      <p className="text-gray-600 mt-1">{s.notes}</p>
+                    )}
+                  </div>
+                ),
+              )}
+
+              {isAddingSession && (
+                <SessionForm
+                  initial={EMPTY_SESSION_FORM}
+                  onSave={handleCreateSession}
+                  onCancel={() => setIsAddingSession(false)}
+                />
+              )}
+            </div>
+          </section>
         </>
       )}
       </div>
