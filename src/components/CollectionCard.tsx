@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { CollectionEntry } from "../types/collection";
 import { CoverArt } from "./CoverArt";
 import { StatusPill } from "./StatusPill";
@@ -10,6 +10,7 @@ interface CollectionCardProps {
 }
 
 export function CollectionCard({ entry, onRemove }: CollectionCardProps) {
+  const navigate = useNavigate();
   const status = entry.current_status ?? "NOT_STARTED";
   const isDLC = entry.base_game !== null;
 
@@ -17,6 +18,12 @@ export function CollectionCard({ entry, onRemove }: CollectionCardProps) {
     e.preventDefault();
     e.stopPropagation();
     onRemove?.(entry.id);
+  }
+
+  function handleDetails(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/collection/${entry.id}`);
   }
 
   return (
@@ -56,7 +63,15 @@ export function CollectionCard({ entry, onRemove }: CollectionCardProps) {
           {isDLC && <DlcChip />}
         </div>
 
-        <StatusPill status={status} />
+        <div className="flex items-center justify-between gap-2">
+          <StatusPill status={status} />
+          <button
+            onClick={handleDetails}
+            className="text-[0.7rem] text-text-muted hover:text-accent hover:underline"
+          >
+            Details
+          </button>
+        </div>
       </div>
     </Link>
   );
