@@ -18,6 +18,7 @@ import {
   Toolbar,
 } from "../components/ui";
 import { CollectionCard } from "../components/CollectionCard";
+import { CollectionRow } from "../components/CollectionRow";
 
 type SortKey =
   | "completed_asc"
@@ -26,8 +27,10 @@ type SortKey =
   | "platform_asc"
   | "status";
 type StatusFilter = PlaythroughStatus | "ALL";
+type ViewMode = "grid" | "compact";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE_OPTIONS = [25, 50, 100, 500] as const;
+const VIEW_STORAGE_KEY = "collection-view-mode";
 
 function StatsBar({ entries }: { entries: CollectionEntry[] }) {
   const total = entries.length;
@@ -68,8 +71,16 @@ export function CollectionPage() {
   const [yearFilter, setYearFilter] = useState<number | "ALL">("ALL");
   const [sort, setSort] = useState<SortKey>("completed_asc");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(PAGE_SIZE_OPTIONS[0]);
+  const [view, setView] = useState<ViewMode>(() =>
+    localStorage.getItem(VIEW_STORAGE_KEY) === "compact" ? "compact" : "grid",
+  );
 
   const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    localStorage.setItem(VIEW_STORAGE_KEY, view);
+  }, [view]);
 
   useEffect(() => {
     listCollection()
@@ -80,7 +91,7 @@ export function CollectionPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, platformFilter, yearFilter, sort]);
+  }, [search, statusFilter, platformFilter, yearFilter, sort, pageSize]);
 
   useEffect(() => {
     function handler(e: KeyboardEvent) {
@@ -170,11 +181,11 @@ export function CollectionPage() {
     });
   }, [entries, search, statusFilter, platformFilter, yearFilter, sort]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
   const visible = filtered.slice(
-    (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE,
+    (safePage - 1) * pageSize,
+    safePage * pageSize,
   );
 
   const hasFilters =
@@ -308,6 +319,59 @@ export function CollectionPage() {
             { value: "status", label: "Status" },
           ]}
         />
+        <Select<string>
+          value={String(pageSize)}
+          onChange={(v) => setPageSize(Number(v))}
+          prefix="Per page:"
+          options={PAGE_SIZE_OPTIONS.map((n) => ({
+            value: String(n),
+            label: String(n),
+          }))}
+        />
+        <div className="inline-flex rounded border border-border-hi bg-surface p-0.5">
+          {(
+            [
+              {
+                value: "grid",
+                label: "Grid view",
+                icon: (
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+                    <rect x="1" y="1" width="5" height="5" rx="1" />
+                    <rect x="8" y="1" width="5" height="5" rx="1" />
+                    <rect x="1" y="8" width="5" height="5" rx="1" />
+                    <rect x="8" y="8" width="5" height="5" rx="1" />
+                  </svg>
+                ),
+              },
+              {
+                value: "compact",
+                label: "Compact view",
+                icon: (
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+                    <rect x="1" y="2" width="12" height="2" rx="1" />
+                    <rect x="1" y="6" width="12" height="2" rx="1" />
+                    <rect x="1" y="10" width="12" height="2" rx="1" />
+                  </svg>
+                ),
+              },
+            ] as const
+          ).map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setView(opt.value)}
+              aria-label={opt.label}
+              aria-pressed={view === opt.value}
+              title={opt.label}
+              className={`flex items-center justify-center w-7 h-7 rounded-[3px] transition-colors ${
+                view === opt.value
+                  ? "bg-accent text-white"
+                  : "text-text-muted hover:text-text-primary"
+              }`}
+            >
+              {opt.icon}
+            </button>
+          ))}
+        </div>
       </Toolbar>
 
       {isLoading && (
@@ -337,10 +401,22 @@ export function CollectionPage() {
         />
       )}
 
-      {!isLoading && !error && visible.length > 0 && (
+      {!isLoading && !error && visible.length > 0 && view === "grid" && (
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {visible.map((entry) => (
             <CollectionCard
+              key={entry.id}
+              entry={entry}
+              onRemove={handleRemove}
+            />
+          ))}
+        </div>
+      )}
+
+      {!isLoading && !error && visible.length > 0 && view === "compact" && (
+        <div className="flex flex-col gap-1.5">
+          {visible.map((entry) => (
+            <CollectionRow
               key={entry.id}
               entry={entry}
               onRemove={handleRemove}
