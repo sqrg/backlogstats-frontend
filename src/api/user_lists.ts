@@ -66,3 +66,19 @@ export async function deleteListEntry(id: number): Promise<void> {
   });
   if (!res.ok) throw new Error("Failed to remove entry");
 }
+
+export async function reorderListEntries(
+  listId: number,
+  entryIds: number[],
+): Promise<UserList> {
+  const res = await apiFetch(
+    `${BASE_URL}/api/v1/lists/${listId}/entries/reorder`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entry_ids: entryIds }),
+    },
+  );
+  if (!res.ok) throw new Error("Failed to reorder entries");
+  return res.json();
+}

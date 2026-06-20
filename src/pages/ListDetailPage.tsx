@@ -9,6 +9,7 @@ import {
   updateUserList,
   createListEntry,
   deleteListEntry,
+  reorderListEntries,
 } from "../api/user_lists";
 import type { UserList } from "../types/user_list";
 import type { CollectionEntry } from "../types/collection";
@@ -45,6 +46,10 @@ export function ListDetailPage() {
   const [igdbResults, setIgdbResults] = useState<IGDBGameResult[]>([]);
   const [igdbSearching, setIgdbSearching] = useState(false);
   const [addingIgdbId, setAddingIgdbId] = useState<number | null>(null);
+
+  // Drag-and-drop reordering
+  const [dragId, setDragId] = useState<number | null>(null);
+  const [dragOverId, setDragOverId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -158,6 +163,34 @@ export function ListDetailPage() {
       );
     } catch {
       setError("Failed to remove entry.");
+    }
+  }
+
+  async function handleDropOnEntry(targetId: number) {
+    const sourceId = dragId;
+    setDragId(null);
+    setDragOverId(null);
+    if (!list || sourceId === null || sourceId === targetId) return;
+
+    const from = list.entries.findIndex((e) => e.id === sourceId);
+    const to = list.entries.findIndex((e) => e.id === targetId);
+    if (from === -1 || to === -1) return;
+
+    const reordered = [...list.entries];
+    const [moved] = reordered.splice(from, 1);
+    reordered.splice(to, 0, moved);
+
+    const previous = list;
+    setList({ ...list, entries: reordered }); // optimistic
+    try {
+      const updated = await reorderListEntries(
+        list.id,
+        reordered.map((e) => e.id),
+      );
+      setList(updated);
+    } catch {
+      setList(previous); // roll back
+      setError("Failed to reorder list.");
     }
   }
 
@@ -417,12 +450,37 @@ export function ListDetailPage() {
           )}
 
           {/* Entry grid */}
+          {list.entries.length > 1 && (
+            <p className="text-xs text-gray-400 mb-2">
+              Drag cards to reorder.
+            </p>
+          )}
           {list.entries.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               {list.entries.map((entry) => (
                 <div
                   key={entry.id}
-                  className="border border-gray-200 rounded p-3 flex flex-col gap-2 text-sm"
+                  draggable
+                  onDragStart={() => setDragId(entry.id)}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    if (dragOverId !== entry.id) setDragOverId(entry.id);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    handleDropOnEntry(entry.id);
+                  }}
+                  onDragEnd={() => {
+                    setDragId(null);
+                    setDragOverId(null);
+                  }}
+                  className={`border rounded p-3 flex flex-col gap-2 text-sm cursor-move transition ${
+                    dragId === entry.id ? "opacity-40" : ""
+                  } ${
+                    dragOverId === entry.id && dragId !== entry.id
+                      ? "border-teal-400 ring-2 ring-teal-300"
+                      : "border-gray-200"
+                  }`}
                 >
                   {entry.game.cover_image_id ? (
                     <img
